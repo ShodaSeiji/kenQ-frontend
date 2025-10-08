@@ -4,39 +4,35 @@
 
 このリポジトリは GitHub Actions を使用して Azure App Service に自動デプロイされます。
 
-### 現在の設定
+### デプロイ先情報
 
-- **App Name**: app-kenq-aco-2
+- **リソースグループ**: kenq-project-freePoC
+- **App Service 名**: app-kenq-freepoc-4
+- **デプロイ先URL**: https://app-kenq-freepoc-4-h9ahafbpb6aqa3d9.japaneast-01.azurewebsites.net
 - **デプロイブランチ**: master
 - **Node.js バージョン**: 20.x
 
-### GitHub Secrets の確認
+### GitHub Secrets の設定
 
-以下のシークレットが設定されていることを確認してください：
+以下のシークレットが必要です：
 
-- `AZUREAPPSERVICE_PUBLISHPROFILE_C93B494C1D604DF58A1906DA560A3582`
-  - Azure App Service の Publish Profile
-
-### Publish Profile の更新方法
-
-1. **Azure Portal での操作**
-   - Azure Portal にログイン
-   - App Service "app-kenq-aco-2" を選択
-   - デプロイメント > デプロイセンター
+1. **Publish Profile の取得**
+   - Azure Portal > App Service "app-kenq-freepoc-4" > デプロイメント > デプロイセンター
    - 「プロファイルのダウンロード」をクリック
+   - `.PublishSettings` ファイルをダウンロード
 
-2. **GitHub での操作**
+2. **GitHub Secrets への追加**
    - GitHub リポジトリ > Settings > Secrets and variables > Actions
-   - `AZUREAPPSERVICE_PUBLISHPROFILE_C93B494C1D604DF58A1906DA560A3582` を更新
+   - 既存の `AZUREAPPSERVICE_PUBLISHPROFILE_C93B494C1D604DF58A1906DA560A3582` を更新
    - ダウンロードした `.PublishSettings` ファイルの内容をペースト
 
 ### 環境変数の設定
 
-Azure Portal > App Service > 設定 > 構成 で以下を設定：
+Azure Portal > App Service "app-kenq-freepoc-4" > 設定 > 構成 で以下を設定：
 
-- `NEXTAUTH_URL`: アプリケーションのURL（例: https://app-kenq-aco-2.azurewebsites.net）
+- `NEXTAUTH_URL`: https://app-kenq-freepoc-4-h9ahafbpb6aqa3d9.japaneast-01.azurewebsites.net
 - `NEXTAUTH_SECRET`: 認証用のシークレット（ランダムな文字列）
-- `NEXT_PUBLIC_API_URL`: バックエンドAPIのURL
+- `NEXT_PUBLIC_API_URL`: https://app-kenq-freepoc-3-aqhzavcsf3gsgghs.japaneast-01.azurewebsites.net
 
 ### デプロイフロー
 
@@ -61,7 +57,7 @@ const nextConfig = {
 
 ### 手動デプロイ
 
-GitHub リポジトリの Actions タブから「Build and deploy Node.js app to Azure Web App - app-kenq-aco-2」ワークフローを選択し、「Run workflow」をクリックすることで手動デプロイも可能です。
+GitHub リポジトリの Actions タブから「Build and deploy Node.js app to Azure Web App - app-kenq-freepoc-4」ワークフローを選択し、「Run workflow」をクリックすることで手動デプロイも可能です。
 
 ### トラブルシューティング
 

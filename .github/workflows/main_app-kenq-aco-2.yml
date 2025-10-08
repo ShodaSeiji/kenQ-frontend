@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - app-kenq-aco-2
+name: Build and deploy Node.js app to Azure Web App - app-kenq-freepoc-4
 
 on:
   push:
@@ -72,7 +72,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'app-kenq-aco-2'
+          app-name: 'app-kenq-freepoc-4'
           slot-name: 'Production'
           package: ./deploy    # 変更点➂
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C93B494C1D604DF58A1906DA560A3582 }}
