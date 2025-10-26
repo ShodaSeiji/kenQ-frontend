@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - app-kenq-freepoc-4
+name: Build and deploy Node.js app to Azure Web App - app-kenq-freepoc-4-frontend
 
 on:
   push:
@@ -28,12 +28,32 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
+      
+      - name: Remove node_modules
+        run: rm -rf node_modules
+
+      - name: Copy artifact for deployment job
+        run: |
+          mkdir deploy
+          cp -r ./.next/standalone/. ./deploy || echo "standalone not found, using .next instead"
+          if [ ! -d "./deploy" ] || [ -z "$(ls -A ./deploy)" ]; then
+            rm -rf deploy
+            mkdir deploy
+            cp -r ./.next ./deploy/
+            cp -r ./public ./deploy/
+          else
+            cp -r ./public ./deploy
+            cp -r ./.next/static/. ./deploy/.next/static
+          fi
+
+      - name: Zip artifact for deployment
+        run: zip release.zip ./deploy -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,6 +64,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
       
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -51,5 +74,6 @@ jobs:
         with:
           app-name: 'app-kenq-freepoc-4'
           slot-name: 'Production'
-          package: .
+          package: ./deploy    
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5B9A769B0364403EA665F5FA979E56B1 }}
+
