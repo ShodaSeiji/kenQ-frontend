@@ -1,1 +1,0 @@
-# app-kenq-freepoc-6-frontend
