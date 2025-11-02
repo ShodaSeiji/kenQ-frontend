@@ -87,7 +87,6 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
   };
 
   const executeDiagnosis = async () => {
-    // console.log("送信内容", formData);
     setShowConfirmModal(false);
     setLoading(true); // ← しばらくお待ちください。の表示のため
 
@@ -123,8 +122,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       }
 
       const result = await response.json();
-      // console.log("診断結果", result.message); // ★ここ
-      
+
       // カギ括弧を除去する処理
       let cleanedResult = result.message || result || "診断結果が取得できませんでした";
       if (typeof cleanedResult === 'string') {
@@ -209,8 +207,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       }
 
       const result = await response.json();
-      // console.log("Project registration result:", result);
-      
+
       const projectId = result.project_id || result.id;
       setProjectId(projectId);
       setResearchResults(result);
@@ -289,7 +286,9 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
               </div>
               <div>
                 <p><span className="font-medium">研究者階層:</span> {
-                  Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
+                  Array.isArray(formData.researcherLevel) && formData.researcherLevel.length === 10
+                    ? "全階層（10項目）"
+                    : Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
                     ? `${formData.researcherLevel.length}項目`
                     : "未指定"
                 }</p>
@@ -365,7 +364,9 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                   : `${Array.isArray(formData.university) ? formData.university.length : 0}校`
               }</p>
               <p><span className="font-medium">研究者階層:</span> {
-                Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
+                Array.isArray(formData.researcherLevel) && formData.researcherLevel.length === 10
+                  ? "全階層（10項目）"
+                  : Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
                   ? `${formData.researcherLevel.length}項目`
                   : "未指定"
               }</p>

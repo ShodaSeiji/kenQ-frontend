@@ -22,6 +22,7 @@ export default function MyPage() {
   const [companyProjects, setCompanyProjects] = useState<Project[]>([]);
   const [companyUsers, setCompanyUsers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // 全案件データを取得する関数
   const fetchAllProjects = async () => {
@@ -94,9 +95,12 @@ export default function MyPage() {
         setSelectedUser(session.user.name);
       }
       Promise.all([fetchAllProjects(), fetchCompanyProjects()])
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          setIsInitialLoading(false);
+        });
     }
-  }, [session]);
+  }, [session?.user?.id]);
 
   // フィルタリング処理
   useEffect(() => {
@@ -120,7 +124,7 @@ export default function MyPage() {
     }
   }, [allProjects, selectedUser]);
 
-  if (status === "loading") {
+  if (isInitialLoading || (status === "loading" && !session)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

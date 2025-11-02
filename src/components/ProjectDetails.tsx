@@ -79,8 +79,6 @@ export default function ProjectDetails({
     );
   }
 
-  // console.log("ProjectDetails - render時のproject:", project);
-
   return (
     <div className="mb-8">
       {/* 案件情報の枠 */}
@@ -128,7 +126,9 @@ export default function ProjectDetails({
             <div className="mb-3">
               <h3 className="text-sm font-semibold text-gray-800 mb-1">研究者階層</h3>
               <p className="text-gray-700 text-sm">{
-                Array.isArray(project.researcherLevel) && project.researcherLevel.length > 0
+                Array.isArray(project.researcherLevel) && project.researcherLevel.length === 10
+                  ? "全階層_教授／准教授／助教／講師／助教授／助手／研究員／特任助教／主任研究員／特任教授"
+                  : Array.isArray(project.researcherLevel) && project.researcherLevel.length > 0
                   ? project.researcherLevel.join("/")
                   : "未指定"
               }</p>

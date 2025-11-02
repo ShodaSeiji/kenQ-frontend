@@ -34,9 +34,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`Calling backend API: ${apiUrl}/favorites/${matchingId}`);
-    console.log('Request body:', JSON.stringify(body, null, 2));
-
     const response = await fetch(`${apiUrl}/favorites/${matchingId}`, {
       method: 'PUT',
       headers: {

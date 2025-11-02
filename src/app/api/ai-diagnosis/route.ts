@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     };
     
     const apiUrl = process.env.API_URL;
-    
+
     if (!apiUrl) {
       console.error('API URL not configured');
       return NextResponse.json(
@@ -31,9 +31,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`Calling backend API: ${apiUrl}/ai-diagnosis`);
-    console.log('Request body:', JSON.stringify(bodyWithUserId, null, 2));
-
     const response = await fetch(`${apiUrl}/ai-diagnosis`, {
       method: 'POST',
       headers: {
@@ -41,8 +38,6 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify(bodyWithUserId),
     });
-
-    console.log(`Backend API response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();

@@ -31,8 +31,6 @@ export default function LoginPage() {
         callbackUrl,
       });
 
-      console.log("signIn result:", result);
-
       if (result?.error) {
         if (result.error === "CredentialsSignin") {
           setError("UserIDかPasswordが間違っています");

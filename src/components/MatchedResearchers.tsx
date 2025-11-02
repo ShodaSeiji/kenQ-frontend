@@ -13,7 +13,6 @@ export default function MatchedResearchers({
   projectId: string;
   setLoading: (value: boolean) => void;
 }) {
-  // console.log("📌 現在の project_id:", projectId); 
   const [researchers, setResearchers] = useState<any[]>([]);
   const [selectedResearchers, setSelectedResearchers] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState(false);
@@ -48,10 +47,6 @@ export default function MatchedResearchers({
 
         const data = await response.json();
 
-        console.log("🔍 APIレスポンス", data);
-        console.log("🔍 プロジェクトタイトル:", data.project_title);
-        console.log("🔍 研究者数:", data.matched_researchers?.length);
-
         setProjectTitle(data.project_title || "");
 
         // プロジェクトデータをExcel出力用に保存
@@ -67,7 +62,6 @@ export default function MatchedResearchers({
 
         // APIレスポンスの構造に合わせて直接matched_researchersを使用
         const researchers = data.matched_researchers || [];
-        console.log("🔍 サンプル研究者データ:", researchers[0]);
         setResearchers(researchers);
 
         // バックエンドからのお気に入り状態を初期化
@@ -75,7 +69,6 @@ export default function MatchedResearchers({
           .filter((r: any) => r.favorite_status === true)
           .map((r: any) => (r.researcher_info?.researcher_id || r.matching_id).toString());
 
-        console.log("🌟 初期お気に入り一覧:", initialFavorites);
         setFavorites(initialFavorites);
       } catch (error) {
         console.error("研究者データの取得エラー:", error);
@@ -198,11 +191,7 @@ export default function MatchedResearchers({
 
 
   const handleExportExcel = () => {
-    // console.log("📊 Excel出力開始 - researchers.length:", researchers.length);
-    // console.log("📊 Researchers data:", researchers);
-
     if (researchers.length === 0) {
-      // console.log("📊 研究者データが空のため、Excel出力をスキップ");
       alert("エクスポートする研究者データがありません。");
       return;
     }
@@ -234,6 +223,8 @@ export default function MatchedResearchers({
       ["研究者階層",
         typeof projectData?.researcherLevel === "string" && projectData.researcherLevel
           ? projectData.researcherLevel
+          : Array.isArray(projectData?.researcherLevel) && projectData.researcherLevel.length === 10
+          ? "全階層 教授／准教授／助教／講師／助教授／助手／研究員／特任教授／特任助教／主任研究員"
           : Array.isArray(projectData?.researcherLevel) && projectData.researcherLevel.length > 0
           ? projectData.researcherLevel.join("/")
           : "教授／准教授／助教／講師／助教授／助手／研究員／特任教授／特任助教／主任研究員"
@@ -322,17 +313,6 @@ export default function MatchedResearchers({
     // Excelファイルをダウンロード
     XLSX.writeFile(wb, filename);
   };
-
-  // console.log("MatchedResearchers - render時のresearchers:", researchers);
-  // console.log("MatchedResearchers - render時の研究者数:", researchers.length);
-  
-  // 最初の研究者のデータ構造を詳しく確認
-  if (researchers.length > 0) {
-    // console.log("📋 サンプル研究者の詳細データ構造:", JSON.stringify(researchers[0], null, 2));
-    // console.log("📋 サンプル研究者のresearcher_info.explanation:", researchers[0].researcher_info?.explanation);
-    // console.log("📋 サンプル研究者のexplanation:", researchers[0].explanation);
-    // console.log("📋 サンプル研究者のmatching_reason:", researchers[0].matching_reason);
-  }
 
   return (
     <div className="relative mb-4 mt-6">

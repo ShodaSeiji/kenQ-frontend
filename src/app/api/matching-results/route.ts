@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     }
 
     const apiUrl = process.env.API_URL;
-    
+
     if (!apiUrl) {
       console.error('API URL not configured');
       return NextResponse.json(
@@ -32,8 +32,6 @@ export async function GET(req: NextRequest) {
         { status: 500 }
       );
     }
-
-    console.log(`Calling backend API: ${apiUrl}/matching-result/${projectId}`);
 
     const response = await fetch(`${apiUrl}/matching-result/${projectId}`, {
       method: 'GET',
@@ -43,8 +41,6 @@ export async function GET(req: NextRequest) {
         'Expires': '0'
       }
     });
-
-    console.log(`Backend API response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -57,7 +53,6 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await response.json();
-    console.log('Backend API response:', JSON.stringify(result, null, 2));
     return NextResponse.json(result);
 
   } catch (error) {
