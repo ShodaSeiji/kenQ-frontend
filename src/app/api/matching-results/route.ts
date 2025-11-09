@@ -15,7 +15,8 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('project_id');
-    
+    const locale = searchParams.get('locale') || 'ja';  // デフォルトは日本語
+
     if (!projectId) {
       return NextResponse.json(
         { error: 'project_id is required' },
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const response = await fetch(`${apiUrl}/matching-result/${projectId}`, {
+    const response = await fetch(`${apiUrl}/matching-result/${projectId}?locale=${locale}`, {
       method: 'GET',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

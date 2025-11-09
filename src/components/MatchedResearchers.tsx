@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from 'xlsx';
 import universitiesBySubregion from "@/data/universities_by_subregion.json";
+import { useLocale, useTranslations } from 'next-intl';
 
 //export default function MatchedResearchers({ projectId }: { projectId: string }) {
 export default function MatchedResearchers({
@@ -13,7 +14,14 @@ export default function MatchedResearchers({
   projectId: string;
   setLoading: (value: boolean) => void;
 }) {
+  const locale = useLocale();
+  const t = useTranslations('researcher');
+  const tProject = useTranslations('project');
+  const tRegister = useTranslations('register');
+  const tUniversities = useTranslations('register.universities');
+  const tIndustries = useTranslations('register.industries');
   const [researchers, setResearchers] = useState<any[]>([]);
+  const [researchersEn, setResearchersEn] = useState<Record<string, any>>({});
   const [selectedResearchers, setSelectedResearchers] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -31,8 +39,8 @@ export default function MatchedResearchers({
   useEffect(() => {
     const fetchResearchers = async () => {
       try {
-        // APIから研究者マッチング結果を取得
-        const response = await fetch(`/api/matching-results?project_id=${projectId}`, {
+        // APIから研究者マッチング結果を取得（ロケール付き）
+        const response = await fetch(`/api/matching-results?project_id=${projectId}&locale=${locale}`, {
           method: "GET",
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -70,6 +78,30 @@ export default function MatchedResearchers({
           .map((r: any) => (r.researcher_info?.researcher_id || r.matching_id).toString());
 
         setFavorites(initialFavorites);
+
+        // 英語ロケールの場合、英語版研究者データを取得
+        if (locale === 'en' && researchers.length > 0) {
+          const researcherIds = researchers.map((r: any) =>
+            r.researcher_info?.researcher_id || r.matching_id
+          ).filter(Boolean);
+
+          if (researcherIds.length > 0) {
+            const enResponse = await fetch('/api/researchers-en', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ researcher_ids: researcherIds }),
+            });
+
+            if (enResponse.ok) {
+              const enData = await enResponse.json();
+              setResearchersEn(enData.researchers || {});
+            } else {
+              console.error('Failed to fetch English researcher data');
+            }
+          }
+        }
       } catch (error) {
         console.error("研究者データの取得エラー:", error);
       } finally {
@@ -77,7 +109,46 @@ export default function MatchedResearchers({
       }
     };
     fetchResearchers();
-  }, [projectId]);
+  }, [projectId, locale]);
+
+  // 研究者情報を取得する関数（多言語対応）
+  const getResearcherInfo = (researcher: any, field: string) => {
+    const researcherId = researcher.researcher_info?.researcher_id || researcher.matching_id;
+
+    if (locale === 'en' && researchersEn[researcherId]) {
+      const enInfo = researchersEn[researcherId];
+      switch (field) {
+        case 'name':
+          return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
+        case 'affiliation':
+          return enInfo.affiliation || researcher.researcher_info?.researcher_affiliation_current || "―";
+        case 'department':
+          return enInfo.department || researcher.researcher_info?.researcher_department_current || "―";
+        case 'position':
+          return enInfo.position || researcher.researcher_info?.researcher_position_current || "―";
+        case 'research_field':
+          return enInfo.research_field || researcher.researcher_info?.researcher_field || "―";
+        default:
+          return "―";
+      }
+    }
+
+    // 日本語または英語データがない場合は日本語版を使用
+    switch (field) {
+      case 'name':
+        return researcher.researcher_info?.researcher_name || "―";
+      case 'affiliation':
+        return researcher.researcher_info?.researcher_affiliation_current || "―";
+      case 'department':
+        return researcher.researcher_info?.researcher_department_current || "―";
+      case 'position':
+        return researcher.researcher_info?.researcher_position_current || "―";
+      case 'research_field':
+        return researcher.researcher_info?.researcher_field || "―";
+      default:
+        return "―";
+    }
+  };
 
   const handleInfoClick = (researcher: any) => {
     setSelectedResearcher(researcher);
@@ -192,7 +263,7 @@ export default function MatchedResearchers({
 
   const handleExportExcel = () => {
     if (researchers.length === 0) {
-      alert("エクスポートする研究者データがありません。");
+      alert(tProject('noExportData'));
       return;
     }
 
@@ -204,30 +275,30 @@ export default function MatchedResearchers({
 
     // 案件情報のワークシート
     const projectInfo = [
-      ["案件情報"],
-      ["案件タイトル", projectData?.title || ""],
-      ["案件内容", projectData?.background || ""],
-      ["業種", projectData?.industry || "入力なし"],
-      ["事業内容", projectData?.businessDescription || "入力なし"],
-      ["大学",
+      [tProject('projectInfo')],
+      [tProject('projectTitle'), projectData?.title || ""],
+      [tProject('projectContent'), projectData?.background || ""],
+      [tProject('industry'), tIndustries(projectData?.industry as any) || tProject('unspecified')],
+      [tProject('businessDescription'), projectData?.businessDescription || tProject('unspecified')],
+      [tProject('university'),
         typeof projectData?.university === "string" && projectData.university
           ? projectData.university === "全大学" || projectData.university.includes("全大学")
-            ? `全大学（${totalUniversityCount}校）`
-            : `${projectData.university}（${projectData.university.split(',').length}校）`
+            ? tProject('allUniversities', { count: totalUniversityCount })
+            : `${projectData.university.split(',').map((u: string) => tUniversities(u.trim() as any)).join('/')}（${projectData.university.split(',').length}校）`
           : Array.isArray(projectData?.university) && projectData.university.length > 0
           ? projectData.university.includes("全大学")
-            ? `全大学（${totalUniversityCount}校）`
-            : `${projectData.university.join("/")}（${projectData.university.length}校）`
-          : `全大学（${totalUniversityCount}校）`
+            ? tProject('allUniversities', { count: totalUniversityCount })
+            : `${projectData.university.map((u: string) => tUniversities(u as any)).join("/")}（${projectData.university.length}校）`
+          : tProject('allUniversities', { count: totalUniversityCount })
       ],
-      ["研究者階層",
+      [tProject('researcherLevel'),
         typeof projectData?.researcherLevel === "string" && projectData.researcherLevel
           ? projectData.researcherLevel
           : Array.isArray(projectData?.researcherLevel) && projectData.researcherLevel.length === 10
-          ? "全階層 教授／准教授／助教／講師／助教授／助手／研究員／特任教授／特任助教／主任研究員"
+          ? tProject('allLevels')
           : Array.isArray(projectData?.researcherLevel) && projectData.researcherLevel.length > 0
-          ? projectData.researcherLevel.join("/")
-          : "教授／准教授／助教／講師／助教授／助手／研究員／特任教授／特任助教／主任研究員"
+          ? projectData.researcherLevel.map((level: string) => tRegister(`researcherLevels.${level}` as any)).join("/")
+          : tProject('allLevels')
       ]
     ];
     
@@ -250,24 +321,24 @@ export default function MatchedResearchers({
       }
     }
     
-    XLSX.utils.book_append_sheet(wb, projectWS, "案件情報");
+    XLSX.utils.book_append_sheet(wb, projectWS, tProject('projectInfo'));
 
     // 研究者一覧のワークシート
     const researcherHeaders = [
-      "氏名",
-      "所属",
-      "部署",
-      "職位",
-      "研究者情報",
-      "マッチング理由",
-      "お気に入り登録"
+      tProject('name'),
+      tProject('currentAffiliation'),
+      tProject('currentDepartment'),
+      tProject('currentPosition'),
+      t('researcherInfo'),
+      t('matchingReason'),
+      tProject('favoriteRegistration')
     ];
 
     const researcherRows = researchers.map((r) => {
       const researcherId = r.researcher_info?.researcher_id || r.matching_id;
       const kakenNumber = researcherId.toString().padStart(12, '0');
       const kakenUrl = `https://nrid.nii.ac.jp/ja/nrid/1${kakenNumber}`;
-      const isFavorite = favorites.includes(researcherId.toString()) ? "登録済み" : "未登録";
+      const isFavorite = favorites.includes(researcherId.toString()) ? tProject('registered') : tProject('notRegistered');
 
       return [
         r.researcher_info?.researcher_name || "―",
@@ -300,7 +371,7 @@ export default function MatchedResearchers({
       }
     }
     
-    XLSX.utils.book_append_sheet(wb, researcherWS, "研究者一覧");
+    XLSX.utils.book_append_sheet(wb, researcherWS, tProject('researcherListSheet'));
 
     // ファイル名を新しい形式に変更
     const sanitizedTitle =
@@ -317,57 +388,57 @@ export default function MatchedResearchers({
   return (
     <div className="relative mb-4 mt-6">
       <div className="pl-6">
-        <h3 className="text-xl font-bold">研究者一覧</h3>
+        <h3 className="text-xl font-bold">{t('researcherList')}</h3>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
         <table className="w-full text-sm border-collapse table-fixed">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[12%]">氏名</th>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[14%]">所属</th>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[12%]">部署</th>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[8%]">職位</th>
-              <th className="px-1 py-4 text-center font-semibold text-gray-700 whitespace-nowrap w-[8%] min-w-[120px]">研究者情報</th>
+              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[12%]">{t('name')}</th>
+              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[14%]">{t('affiliation')}</th>
+              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[12%]">{t('department')}</th>
+              <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[8%]">{t('position')}</th>
+              <th className="px-1 py-4 text-center font-semibold text-gray-700 whitespace-nowrap w-[8%] min-w-[120px]">{t('researcherInfo')}</th>
               <th className="pl-3 pr-1 py-4 text-left font-semibold text-gray-700 whitespace-nowrap w-[38%]">
                 <div className="flex items-center">
-                  <span>マッチング理由</span>
-                  <button 
+                  <span>{t('matchingReason')}</span>
+                  <button
                     onClick={toggleAllReasons}
                     className="ml-1 text-blue-500 hover:text-blue-700 transition text-base cursor-pointer"
-                    title={allReasonsExpanded ? "すべて折りたたむ" : "すべて展開"}
+                    title={allReasonsExpanded ? t('collapseAll') : t('expandAll')}
                   >
                     {allReasonsExpanded ? "−" : "＋"}
                   </button>
                 </div>
               </th>
-              <th className="pl-1 pr-2 py-4 text-center font-semibold text-gray-700 whitespace-nowrap w-[8%]">お気に入り</th>
+              <th className="pl-1 pr-2 py-4 text-center font-semibold text-gray-700 whitespace-nowrap w-[8%]">{t('favorite')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {researchers.map((researcher: any) => (
               <tr key={researcher.researcher_info?.researcher_id || researcher.matching_id} className="hover:bg-gray-50">
-                <td className="px-4 py-4 text-gray-900">{researcher.researcher_info?.researcher_name || "―"}</td>
+                <td className="px-4 py-4 text-gray-900">{getResearcherInfo(researcher, 'name')}</td>
                 <td className="px-4 py-4 text-gray-700">
-                  {researcher.researcher_info?.researcher_affiliation_current || "―"}
+                  {getResearcherInfo(researcher, 'affiliation')}
                 </td>
                 <td className="px-4 py-4 text-gray-700">
                   <div className="min-w-[8em] max-w-[8em] break-words whitespace-normal leading-tight">
-                    {researcher.researcher_info?.researcher_department_current || "―"}
+                    {getResearcherInfo(researcher, 'department')}
                   </div>
                 </td>
                 <td className="px-4 py-4 text-gray-700">
-                  {researcher.researcher_info?.researcher_position_current || "―"}
+                  {getResearcherInfo(researcher, 'position')}
                 </td>
                 <td className="px-1 py-4 text-center align-top pr-2">
                   <a
-                    href={`https://nrid.nii.ac.jp/ja/nrid/1${(researcher.researcher_info?.researcher_id || researcher.matching_id).toString().padStart(12, '0')}`}
+                    href={`https://nrid.nii.ac.jp/${locale}/nrid/1${(researcher.researcher_info?.researcher_id || researcher.matching_id).toString().padStart(12, '0')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-1 py-0.5 bg-blue-400 text-white rounded hover:bg-blue-500 transition whitespace-nowrap"
                     style={{ fontSize: '8px' }}
                   >
-                    プロフィール
+                    {t('profile')}
                     <svg className="ml-1 w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -460,19 +531,19 @@ export default function MatchedResearchers({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Excel出力
+          {tProject('excelExport')}
         </button>
       </div>
 
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-xs">
-            <h2 className="text-xl font-bold mb-4">オファーしました！</h2>
+            <h2 className="text-xl font-bold mb-4">{tProject('offerSent')}</h2>
             <button
               onClick={() => router.push("/register")}
               className="w-full py-3 bg-gray-700 text-white rounded-lg shadow-md hover:bg-gray-800 transition duration-200"
             >
-              新規登録に戻る
+              {tProject('backToNewRegistration')}
             </button>
           </div>
         </div>
@@ -481,13 +552,13 @@ export default function MatchedResearchers({
       {showReasonModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg text-gray-800">
-            <h2 className="text-xl font-semibold mb-4">マッチング理由</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('matchingReason')}</h2>
             <p className="mb-6 whitespace-pre-wrap">{selectedReason}</p>
             <button
               onClick={() => setShowReasonModal(false)}
               className="w-full py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
             >
-              閉じる
+              {tProject('close')}
             </button>
           </div>
         </div>
@@ -496,26 +567,26 @@ export default function MatchedResearchers({
       {showInfoModal && selectedResearcher && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full shadow-lg text-gray-800 overflow-y-auto max-h-[80vh]">
-            <h2 className="text-xl font-semibold mb-4">研究者情報</h2>
+            <h2 className="text-xl font-semibold mb-4">{tProject('researcherInfoTitle')}</h2>
             <div className="space-y-2 text-sm whitespace-pre-wrap">
-              <p><strong>氏名：</strong>{selectedResearcher.researcher_name}（{selectedResearcher.researcher_name_kana}）</p>
-              <p><strong>所属：</strong>{selectedResearcher.researcher_affiliation_current}</p>
-              <p><strong>部署：</strong>{selectedResearcher.researcher_department_current}</p>
-              <p><strong>職位：</strong>{selectedResearcher.researcher_position_current || "―"}</p>
-              <p><strong>専門分野：</strong>{selectedResearcher.research_field_pi}</p>
-              <p><strong>過去の所属歴：</strong>{selectedResearcher.researcher_affiliations_past}</p>
+              <p><strong>{tProject('name')}：</strong>{selectedResearcher.researcher_name}（{selectedResearcher.researcher_name_kana}）</p>
+              <p><strong>{tProject('currentAffiliation')}：</strong>{selectedResearcher.researcher_affiliation_current}</p>
+              <p><strong>{tProject('currentDepartment')}：</strong>{selectedResearcher.researcher_department_current}</p>
+              <p><strong>{tProject('currentPosition')}：</strong>{selectedResearcher.researcher_position_current || "―"}</p>
+              <p><strong>{tProject('researchField')}：</strong>{selectedResearcher.research_field_pi}</p>
+              <p><strong>{tProject('pastAffiliations')}：</strong>{selectedResearcher.researcher_affiliations_past}</p>
             </div>
             <button
               onClick={() => router.push(`/researcher/${selectedResearcher.researcher_id}`)}
               className="w-full py-2 bg-blue-400 text-white rounded hover:bg-blue-500 transition"
             >
-              詳細を見る
+              {tProject('viewDetails')}
             </button>
             <button
               onClick={() => setShowInfoModal(false)}
               className="mt-6 w-full py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
             >
-              閉じる
+              {tProject('close')}
             </button>
           </div>
         </div>

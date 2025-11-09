@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import universitiesBySubregion from "@/data/universities_by_subregion.json";
 
 type UniversitySelectProps = {
@@ -9,6 +10,9 @@ type UniversitySelectProps = {
 
 
 export default function UniversitySelect({ value, onChange }: UniversitySelectProps) {
+    const t = useTranslations('register.fields');
+    const tRegions = useTranslations('register.regions');
+    const tUniversities = useTranslations('register.universities');
     const allUniversities = Object.values(universitiesBySubregion).flat();
     
     const [selectionMode, setSelectionMode] = useState<'none' | 'all' | 'regions'>('none');
@@ -80,7 +84,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectAll}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>全大学を選択（{allUniversities.length}校）</span>
+                        <span>{t('selectAllUniversities', { count: allUniversities.length })}</span>
                     </label>
                 </div>
 
@@ -94,7 +98,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectRegions}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>エリアから選択</span>
+                        <span>{t('selectByArea')}</span>
                     </label>
                 </div>
 
@@ -115,7 +119,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                             onChange={() => handleToggleRegion(region, universities)}
                                             className="w-4 h-4 accent-blue-500"
                                         />
-                                        <span className="text-sm">{region}</span>
+                                        <span className="text-sm">{tRegions(region as any)}</span>
                                     </div>
                                     <div className="ml-6 grid grid-cols-3 gap-x-4 gap-y-1">
                                         {universities.map((univ) => {
@@ -128,7 +132,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                                         onChange={() => handleToggleUniversity(univ)}
                                                         className="w-3 h-3 accent-blue-500"
                                                     />
-                                                    <span>{univ}</span>
+                                                    <span>{tUniversities(univ as any)}</span>
                                                 </label>
                                             );
                                         })}
@@ -143,7 +147,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
             {/* 選択された大学数 */}
             <div className="mt-6 pt-4 border-t border-gray-300">
                 <p className="text-sm font-medium">
-                    選択された大学: {selectedUniversities.length}校
+                    {t('selectedUniversities', { count: selectedUniversities.length })}
                 </p>
             </div>
         </div>
