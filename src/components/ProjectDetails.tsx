@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import universitiesBySubregion from "@/data/universities_by_subregion.json";
 
 //export default function ProjectDetails({ projectId }: { projectId: string }) {
@@ -11,6 +12,9 @@ export default function ProjectDetails({
   projectId: string;
   setLoading: (value: boolean) => void;
 }) {
+  const t = useTranslations('project');
+  const tRegister = useTranslations('register');
+  const tUniversities = useTranslations('register.universities');
 
   const [project, setProject] = useState<any>(null);
 
@@ -53,7 +57,7 @@ export default function ProjectDetails({
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
-          <p className="text-lg font-medium mb-4">しばらくお待ちください</p>
+          <p className="text-lg font-medium mb-4">{t('pleaseWait')}</p>
           <svg
             className="animate-spin h-10 w-10 text-blue-500"
             xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +92,7 @@ export default function ProjectDetails({
 
         {/* 案件内容セクション */}
         <div className="mb-4">
-          <h2 className="text-sm font-semibold text-gray-800 mb-2">案件内容</h2>
+          <h2 className="text-sm font-semibold text-gray-800 mb-2">{t('projectContent')}</h2>
           <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm mb-4">{project.background}</p>
         </div>
 
@@ -100,18 +104,18 @@ export default function ProjectDetails({
           {/* 左列 */}
           <div>
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">業種</h3>
-              <p className="text-gray-700 text-sm">{project.industry || ''}</p>
+              <h3 className="text-sm font-semibold text-gray-800 mb-1">{t('industry')}</h3>
+              <p className="text-gray-700 text-sm">{project.industry ? tRegister(`industries.${project.industry}` as any) : ''}</p>
             </div>
-            
+
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">大学</h3>
+              <h3 className="text-sm font-semibold text-gray-800 mb-1">{t('university')}</h3>
               <p className="text-gray-700 text-sm">{
                 Array.isArray(project.university) && project.university.includes("全大学")
-                  ? `全大学（${Object.values(universitiesBySubregion).flat().length}校）`
+                  ? t('allUniversities', { count: Object.values(universitiesBySubregion).flat().length })
                   : Array.isArray(project.university) && project.university.length > 0
-                  ? `${project.university.join("/")}（${project.university.length}校）`
-                  : "未指定"
+                  ? `${project.university.map((u: string) => tUniversities(u as any)).join("/")}（${project.university.length}校）`
+                  : t('unspecified')
               }</p>
             </div>
           </div>
@@ -119,18 +123,18 @@ export default function ProjectDetails({
           {/* 右列 */}
           <div>
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">事業内容</h3>
+              <h3 className="text-sm font-semibold text-gray-800 mb-1">{t('businessDescription')}</h3>
               <p className="text-gray-700 text-sm">{project.businessDescription || ''}</p>
             </div>
-            
+
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">研究者階層</h3>
+              <h3 className="text-sm font-semibold text-gray-800 mb-1">{t('researcherLevel')}</h3>
               <p className="text-gray-700 text-sm">{
                 Array.isArray(project.researcherLevel) && project.researcherLevel.length === 10
-                  ? "全階層_教授／准教授／助教／講師／助教授／助手／研究員／特任助教／主任研究員／特任教授"
+                  ? t('allLevels')
                   : Array.isArray(project.researcherLevel) && project.researcherLevel.length > 0
-                  ? project.researcherLevel.join("/")
-                  : "未指定"
+                  ? project.researcherLevel.map((level: string) => tRegister(`researcherLevels.${level}` as any)).join("/")
+                  : t('unspecified')
               }</p>
             </div>
           </div>

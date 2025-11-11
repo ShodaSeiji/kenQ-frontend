@@ -5,8 +5,11 @@ import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function LoginPage() {
+  const t = useTranslations('auth');
   const [companyUserName, setCompanyUserName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,9 +36,9 @@ export default function LoginPage() {
 
       if (result?.error) {
         if (result.error === "CredentialsSignin") {
-          setError("UserIDかPasswordが間違っています");
+          setError(t('credentialsError'));
         } else {
-          setError("エラーが発生しました。もう一度お試しください。");
+          setError(t('genericError'));
         }
       } else if (result?.ok) {
         // 認証成功時はリダイレクト
@@ -43,7 +46,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("エラーが発生しました。もう一度お試しください。");
+      setError(t('genericError'));
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +54,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
+      {/* 言語切り替えボタン（テスト用） */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-sm">
         {/* ロゴ */}
         <div className="text-center mb-12">
@@ -78,7 +86,7 @@ export default function LoginPage() {
               type="text"
               value={companyUserName}
               onChange={(e) => setCompanyUserName(e.target.value)}
-              placeholder="User ID"
+              placeholder={t('userId')}
               className="w-full px-4 py-4 border border-gray-200 rounded-lg bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
               autoComplete="username"
               name="company_user_name"
@@ -93,7 +101,7 @@ export default function LoginPage() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={t('password')}
               className="w-full px-4 py-4 pr-12 border border-gray-200 rounded-lg bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
               autoComplete="new-password"
               name="password"
@@ -119,14 +127,14 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full bg-slate-600 text-white py-4 rounded-lg font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
-            {isLoading ? "ログイン中..." : "Log In"}
+            {isLoading ? t('loggingIn') : t('loginButton')}
           </button>
         </form>
 
         {/* 説明文 */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
-            アカウント、パスワードを忘れた方は担当者に連絡してください。
+            {t('forgotAccount')}
           </p>
         </div>
       </div>

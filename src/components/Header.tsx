@@ -5,8 +5,11 @@ import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useFormContext } from "@/context/FormContext";
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
+  const t = useTranslations('header');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showNavigateConfirm, setShowNavigateConfirm] = useState(false);
   const [showRegisterReloadConfirm, setShowRegisterReloadConfirm] = useState(false);
@@ -72,6 +75,9 @@ const Header = () => {
 
       {/* 右側のユーザーエリア */}
       <div className="flex items-center gap-6">
+        {/* 言語切り替え */}
+        <LanguageSwitcher />
+
         {/* リサーチ案件一覧ボタン */}
         <button
           onClick={handleReloadMyPage}
@@ -100,7 +106,7 @@ const Header = () => {
               strokeLinejoin="round"
             />
           </svg>
-          リサーチ案件一覧
+          {t('projectList')}
         </button>
 
         {/* 新規登録ボタン */}
@@ -131,7 +137,7 @@ const Header = () => {
               strokeLinejoin="round"
             />
           </svg>
-          新規登録
+          {t('newRegistration')}
         </button>
 
         {/* ユーザー名 */}
@@ -174,20 +180,20 @@ const Header = () => {
     {showLogoutConfirm && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm w-full mx-4">
-          <h2 className="text-lg font-semibold mb-4">ログアウト確認</h2>
-          <p className="text-gray-600 mb-6">ログアウトしますか？</p>
+          <h2 className="text-lg font-semibold mb-4">{t('logoutConfirmTitle')}</h2>
+          <p className="text-gray-600 mb-6">{t('logoutConfirmMessage')}</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={handleLogout}
               className="px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition"
             >
-              はい
+              {t('yes')}
             </button>
             <button
               onClick={() => setShowLogoutConfirm(false)}
               className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
             >
-              いいえ
+              {t('no')}
             </button>
           </div>
         </div>
@@ -198,21 +204,21 @@ const Header = () => {
     {showNavigateConfirm && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm w-full mx-4">
-          <h2 className="text-lg font-semibold mb-4">案件一覧への遷移確認</h2>
-          <p className="text-gray-600 mb-2">案件一覧に戻しますか？</p>
-          <p className="text-gray-600 mb-6">記入された情報は失われます。</p>
+          <h2 className="text-lg font-semibold mb-4">{t('navigateConfirmTitle')}</h2>
+          <p className="text-gray-600 mb-2">{t('navigateConfirmMessage')}</p>
+          <p className="text-gray-600 mb-6">{t('navigateWarning')}</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={handleConfirmNavigate}
               className="px-6 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition font-medium"
             >
-              はい
+              {t('yes')}
             </button>
             <button
               onClick={() => setShowNavigateConfirm(false)}
               className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
             >
-              いいえ
+              {t('no')}
             </button>
           </div>
         </div>
@@ -223,21 +229,21 @@ const Header = () => {
     {showRegisterReloadConfirm && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm w-full mx-4">
-          <h2 className="text-lg font-semibold mb-4">入力情報クリア確認</h2>
-          <p className="text-gray-600 mb-2">新規登録画面をリロードしますか？</p>
-          <p className="text-gray-600 mb-6">入力された情報はクリアされます。</p>
+          <h2 className="text-lg font-semibold mb-4">{t('registerReloadConfirmTitle')}</h2>
+          <p className="text-gray-600 mb-2">{t('registerReloadConfirmMessage')}</p>
+          <p className="text-gray-600 mb-6">{t('registerReloadWarning')}</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={handleConfirmRegisterReload}
               className="px-6 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition font-medium"
             >
-              はい
+              {t('yes')}
             </button>
             <button
               onClick={() => setShowRegisterReloadConfirm(false)}
               className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
             >
-              いいえ
+              {t('no')}
             </button>
           </div>
         </div>
