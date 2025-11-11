@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import universitiesBySubregion from "@/data/universities_by_subregion.json";
 
 type UniversitySelectProps = {
@@ -9,6 +10,7 @@ type UniversitySelectProps = {
 
 
 export default function UniversitySelect({ value, onChange }: UniversitySelectProps) {
+    const t = useTranslations('register');
     const allUniversities = Object.values(universitiesBySubregion).flat();
     
     const [selectionMode, setSelectionMode] = useState<'none' | 'all' | 'regions'>('none');
@@ -80,7 +82,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectAll}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>全大学を選択（{allUniversities.length}校）</span>
+                        <span>{t('universitySelect.selectAll', { count: allUniversities.length })}</span>
                     </label>
                 </div>
 
@@ -94,7 +96,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectRegions}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>エリアから選択</span>
+                        <span>{t('universitySelect.selectByRegion')}</span>
                     </label>
                 </div>
 
@@ -143,7 +145,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
             {/* 選択された大学数 */}
             <div className="mt-6 pt-4 border-t border-gray-300">
                 <p className="text-sm font-medium">
-                    選択された大学: {selectedUniversities.length}校
+                    {t('universitySelect.selectedCount', { count: selectedUniversities.length })}
                 </p>
             </div>
         </div>
