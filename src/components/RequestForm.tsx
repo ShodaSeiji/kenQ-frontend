@@ -2,9 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { useFormContext, allResearcherLevels } from "@/context/FormContext";
 import UniversitySelect from "@/components/UniversitySelect";
 import universitiesBySubregion from "@/data/universities_by_subregion.json";
+
+// 業種の定数
+const allIndustries = [
+  "水産・農林業", "鉱業", "建設業", "食料品", "繊維製品", "パルプ・紙", "化学",
+  "医薬品", "石油・石炭製品", "ゴム製品", "ガラス・土石製品", "鉄鋼", "非鉄金属",
+  "金属製品", "機械", "電気機器", "輸送用機器", "精密機器", "その他製品",
+  "電気・ガス業", "陸運業", "海運業", "空運業", "倉庫・運輸関連業", "情報・通信業",
+  "卸売業", "小売業", "銀行業", "証券、商品先物取引業", "保険業", "その他金融業",
+  "不動産業", "サービス業"
+];
 
 type FormDataType = {
   title: string;
@@ -23,6 +34,11 @@ type RequestFormProps = {
 };
 
 export default function RequestForm({ onSubmit, onStatusChange }: RequestFormProps) {
+  const t = useTranslations('register');
+  const tCommon = useTranslations('common');
+  const tLevels = useTranslations('register.researcherLevels');
+  const tIndustries = useTranslations('register.industries');
+  const locale = useLocale();
   const router = useRouter();
   const { formData, setFormData } = useFormContext();
   const [selectedUniversities, setSelectedUniversities] = useState<string[]>([]);
@@ -72,7 +88,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       !formData.title ||
       !formData.background
     ) {
-      setValidationError("案件タイトルと案件内容の両方を入力してから案件入力AIアシストをご利用ください。");
+      setValidationError(t('validationError.aiAssistRequiredFields'));
       return;
     }
 
@@ -112,6 +128,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             formData.deadline && formData.deadline.trim() !== ""
               ? formData.deadline
               : "2099-12-31", // ←★ここが重要
+          language: locale, // ← 言語設定を追加
           // company_user_idはサーバーサイドでセッションから取得
         }),
       });
@@ -167,13 +184,13 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
 
     // 必須項目のバリデーション
     const missingFields = [];
-    if (!formData.title) missingFields.push("案件タイトル");
-    if (!formData.background) missingFields.push("案件内容");
-    if (!formData.university || formData.university.length === 0) missingFields.push("大学");
-    if (!formData.researcherLevel || formData.researcherLevel.length === 0) missingFields.push("研究者階層");
+    if (!formData.title) missingFields.push(t('fields.projectTitle'));
+    if (!formData.background) missingFields.push(t('fields.projectContent'));
+    if (!formData.university || formData.university.length === 0) missingFields.push(t('fields.university'));
+    if (!formData.researcherLevel || formData.researcherLevel.length === 0) missingFields.push(t('fields.researcherLevel'));
 
     if (missingFields.length > 0) {
-      setValidationError(`必須項目を入力してください：${missingFields.join("、")}`);
+      setValidationError(t('validationError.requiredFields', { fields: missingFields.join('、') }));
       return;
     }
 
@@ -234,7 +251,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
 
     } catch (error) {
       console.error("Registration error:", error);
-      setValidationError("案件登録中にエラーが発生しました。");
+      setValidationError(t('errors.registrationError'));
       setIsResearching(false);
     }
   };
@@ -250,52 +267,52 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">リサーチが完了しました！</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{t('researchComplete.title')}</h1>
           </div>
-          
+
           <p className="text-gray-600 mb-6">
-            マッチングした研究者を確認できます。
+            {t('researchComplete.description')}
           </p>
 
           <div className="bg-blue-50 p-6 rounded-lg mb-8 text-left">
             <div className="flex items-center mb-4">
-              <h3 className="text-lg font-semibold text-blue-800">リサーチした案件</h3>
+              <h3 className="text-lg font-semibold text-blue-800">{t('researchComplete.researchedProject')}</h3>
             </div>
-            
+
             <h4 className="text-blue-600 font-medium mb-3">{researchResults.project_title}</h4>
-            
+
             <div className="space-y-2 text-sm text-gray-600">
               <div>
-                <p><span className="font-medium">業種:</span> {
-                  formData.industry || "未指定"
+                <p><span className="font-medium">{t('fields.industry')}:</span> {
+                  formData.industry ? tIndustries(formData.industry as any) : t('common.unspecified')
                 }</p>
               </div>
               <div>
-                <p><span className="font-medium">事業内容:</span> {
-                  formData.businessDescription || "未指定"
+                <p><span className="font-medium">{t('fields.businessDescription')}:</span> {
+                  formData.businessDescription || t('common.unspecified')
                 }</p>
               </div>
               <div>
-                <p><span className="font-medium">対象大学:</span> {
+                <p><span className="font-medium">{t('fields.targetUniversity')}:</span> {
                   Array.isArray(formData.university) && formData.university.includes("全大学")
-                    ? `全大学（${Object.values(universitiesBySubregion).flat().length}校）`
+                    ? t('researchComplete.allUniversities', { count: Object.values(universitiesBySubregion).flat().length })
                     : Array.isArray(formData.university) && formData.university.length > 0
-                    ? `${formData.university.length}校`
-                    : "未指定"
+                    ? t('researchComplete.universityCount', { count: formData.university.length })
+                    : t('common.unspecified')
                 }</p>
               </div>
               <div>
-                <p><span className="font-medium">研究者階層:</span> {
+                <p><span className="font-medium">{t('fields.researcherLevel')}:</span> {
                   Array.isArray(formData.researcherLevel) && formData.researcherLevel.length === 10
-                    ? "全階層（10項目）"
+                    ? t('researchComplete.allLevels')
                     : Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
-                    ? `${formData.researcherLevel.length}項目`
-                    : "未指定"
+                    ? t('researchComplete.levelCount', { count: formData.researcherLevel.length })
+                    : t('common.unspecified')
                 }</p>
               </div>
             </div>
           </div>
-          
+
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => {
@@ -305,7 +322,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
               }}
               className="px-6 py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500"
             >
-              結果に進む
+              {t('researchComplete.viewResults')}
             </button>
           </div>
           
@@ -340,35 +357,35 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               ></path>
             </svg>
-            <h1 className="text-2xl font-bold text-gray-800">AIリサーチ実行中</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{t('researchInProgress.title')}</h1>
           </div>
-          
+
           <p className="text-gray-600 mb-4">
-            マッチングする研究者をAIが分析しています。処理完了まで画面を閉じずにお待ちください...
+            {t('researchInProgress.description')}
           </p>
-          
-          
+
+
           <div className="bg-blue-50 p-6 rounded-lg mb-8 text-left">
-            <h2 className="text-lg font-semibold text-blue-800 mb-4">リサーチ中の案件</h2>
+            <h2 className="text-lg font-semibold text-blue-800 mb-4">{t('researchInProgress.researchingProject')}</h2>
             <h3 className="text-blue-600 font-medium mb-3">{formData.title}</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">業種:</span> {
-                formData.industry || "未指定"
+              <p><span className="font-medium">{t('fields.industry')}:</span> {
+                formData.industry ? tIndustries(formData.industry as any) : t('common.unspecified')
               }</p>
-              <p><span className="font-medium">事業内容:</span> {
-                formData.businessDescription || "未指定"
+              <p><span className="font-medium">{t('fields.businessDescription')}:</span> {
+                formData.businessDescription || t('common.unspecified')
               }</p>
-              <p><span className="font-medium">対象大学:</span> {
+              <p><span className="font-medium">{t('fields.targetUniversity')}:</span> {
                 Array.isArray(formData.university) && formData.university.includes("全大学")
-                  ? `全大学（${Object.values(universitiesBySubregion).flat().length}校）`
-                  : `${Array.isArray(formData.university) ? formData.university.length : 0}校`
+                  ? t('researchInProgress.allUniversities', { count: Object.values(universitiesBySubregion).flat().length })
+                  : t('researchInProgress.universityCount', { count: Array.isArray(formData.university) ? formData.university.length : 0 })
               }</p>
-              <p><span className="font-medium">研究者階層:</span> {
+              <p><span className="font-medium">{t('fields.researcherLevel')}:</span> {
                 Array.isArray(formData.researcherLevel) && formData.researcherLevel.length === 10
-                  ? "全階層（10項目）"
+                  ? t('researchInProgress.allLevels')
                   : Array.isArray(formData.researcherLevel) && formData.researcherLevel.length > 0
-                  ? `${formData.researcherLevel.length}項目`
-                  : "未指定"
+                  ? t('researchInProgress.levelCount', { count: formData.researcherLevel.length })
+                  : t('common.unspecified')
               }</p>
             </div>
           </div>
@@ -385,117 +402,89 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
 
         {/* 案件のタイトル */}
         <div>
-          <label className="block text-sm font-medium mb-1">案件タイトル（40文字以内） <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">{t('fields.projectTitleLabel')} <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
             maxLength={40}
-            placeholder="タイトルを入力してください"
+            placeholder={t('placeholders.projectTitle')}
             className="w-full p-2 border border-gray-300 rounded-lg"
           />
           <div className="text-right -mt-1 mb-2">
             <span className="text-xs text-gray-400">
-              {formData.title.length}/40文字
+              {t('charCount.projectTitle', { current: formData.title.length, max: 40 })}
             </span>
           </div>
         </div>
 
       {/* 案件内容 */}
       <div>
-        <label className="block text-sm font-medium mb-1">案件内容（2000文字以内）<span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium mb-1">{t('fields.projectContentLabel')}<span className="text-red-500">*</span></label>
         <textarea
           name="background"
           value={formData.background}
           onChange={handleChange}
-          placeholder="案件内容を記載してください"
+          placeholder={t('placeholders.projectContent')}
           maxLength={2000}
           className="w-full p-2 border border-gray-300 rounded-lg"
           rows={10}
         />
         <div className="text-right -mt-1 mb-2">
           <span className="text-xs text-gray-400">
-            {formData.background.length}/2000文字
+            {t('charCount.projectContent', { current: formData.background.length, max: 2000 })}
           </span>
         </div>
       </div>
 
       {/* 業種 */}
       <div>
-        <label className="block text-sm font-medium mb-1">業種</label>
+        <label className="block text-sm font-medium mb-1">{t('fields.industry')}</label>
         <select
           name="industry"
           value={formData.industry}
           onChange={handleChange}
           className="w-full p-2 pr-8 border border-gray-300 rounded-lg"
         >
-          <option value="">選択してください</option>
-          <option value="水産・農林業">水産・農林業</option>
-          <option value="鉱業">鉱業</option>
-          <option value="建設業">建設業</option>
-          <option value="食料品">食料品</option>
-          <option value="繊維製品">繊維製品</option>
-          <option value="パルプ・紙">パルプ・紙</option>
-          <option value="化学">化学</option>
-          <option value="医薬品">医薬品</option>
-          <option value="石油・石炭製品">石油・石炭製品</option>
-          <option value="ゴム製品">ゴム製品</option>
-          <option value="ガラス・土石製品">ガラス・土石製品</option>
-          <option value="鉄鋼">鉄鋼</option>
-          <option value="非鉄金属">非鉄金属</option>
-          <option value="金属製品">金属製品</option>
-          <option value="機械">機械</option>
-          <option value="電気機器">電気機器</option>
-          <option value="輸送用機器">輸送用機器</option>
-          <option value="精密機器">精密機器</option>
-          <option value="その他製品">その他製品</option>
-          <option value="電気・ガス業">電気・ガス業</option>
-          <option value="陸運業">陸運業</option>
-          <option value="海運業">海運業</option>
-          <option value="空運業">空運業</option>
-          <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-          <option value="情報・通信業">情報・通信業</option>
-          <option value="卸売業">卸売業</option>
-          <option value="小売業">小売業</option>
-          <option value="銀行業">銀行業</option>
-          <option value="証券、商品先物取引業">証券、商品先物取引業</option>
-          <option value="保険業">保険業</option>
-          <option value="その他金融業">その他金融業</option>
-          <option value="不動産業">不動産業</option>
-          <option value="サービス業">サービス業</option>
+          <option value="">{t('placeholders.selectIndustry')}</option>
+          {allIndustries.map((industry) => (
+            <option key={industry} value={industry}>
+              {tIndustries(industry as any)}
+            </option>
+          ))}
         </select>
       </div>
 
       {/* 事業内容 */}
       <div className="relative">
-        <label className="block text-sm font-medium mb-1">事業内容（100文字以内）</label>
+        <label className="block text-sm font-medium mb-1">{t('fields.businessDescriptionLabel')}</label>
         <textarea
           name="businessDescription"
           value={formData.businessDescription}
           onChange={handleChange}
-          placeholder="事業内容を記載してください"
+          placeholder={t('placeholders.businessDescription')}
           maxLength={100}
           className="w-full p-2 border border-gray-300 rounded-lg resize-none"
           rows={3}
         />
         <div className="text-right -mt-1 mb-2">
           <span className="text-xs text-gray-400">
-            {formData.businessDescription.length}/100文字
+            {t('charCount.businessDescription', { current: formData.businessDescription.length, max: 100 })}
           </span>
         </div>
 
         {/* 入力欄の外側・右下にボタンを配置 */}
         <div className="flex flex-col items-center mt-6 space-y-2">
           <p className="text-xs text-gray-800 text-center">
-            案件登録内容のブラッシュアップにAIアシスト機能をご活用ください。
+            {t('aiAssist.promotionText')}
           </p>
           <button
             type="button"
             onClick={handleDiagnosis}
             className="bg-blue-400 hover:bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded"
           >
-            案件入力 AIアシスト
+            {t('aiAssist.buttonText')}
           </button>
         </div>
 
@@ -505,10 +494,10 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <div className="flex items-center mb-4">
                 <span className="text-blue-600 text-xl mr-3">✨</span>
-                <h2 className="text-lg font-semibold">AIアシスト - 案件内容の入力サポート</h2>
+                <h2 className="text-lg font-semibold">{t('aiAssist.modal.confirmTitle')}</h2>
               </div>
               <p className="text-gray-700 text-sm mb-6">
-                AIが入力情報を深掘りし、充実した案件内容を提案します。
+                {t('aiAssist.modal.confirmDescription')}
               </p>
               <div className="flex gap-3 justify-end">
                 <button
@@ -516,13 +505,13 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                   onClick={executeDiagnosis}
                 >
                   <span>✨</span>
-                  AIアシストを実行
+                  {t('aiAssist.modal.executeButton')}
                 </button>
                 <button
                   className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
                   onClick={() => setShowConfirmModal(false)}
                 >
-                  キャンセル
+                  {tCommon('cancel')}
                 </button>
               </div>
             </div>
@@ -534,34 +523,34 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full mx-4">
               <div className="flex items-center mb-4">
                 <span className="text-blue-600 text-xl mr-3">✨</span>
-                <h2 className="text-lg font-semibold">AIアシスト - 案件内容の入力サポート</h2>
+                <h2 className="text-lg font-semibold">{t('aiAssist.modal.resultTitle')}</h2>
               </div>
               <div className="mb-4">
                 <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">AIによる提案</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('aiAssist.modal.aiProposal')}</label>
                 </div>
                 <div className="border border-gray-300 rounded-lg p-3 bg-gray-50 max-h-60 overflow-y-auto">
                   <p className="whitespace-pre-wrap text-sm text-gray-800">{diagnosisResult}</p>
                 </div>
                 <div className="text-right mt-1">
                   <span className="text-xs text-gray-400">
-                    {diagnosisResult?.length || 0}/2000文字
+                    {t('charCount.aiProposal', { current: diagnosisResult?.length || 0, max: 2000 })}
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex gap-3 justify-end">
                 <button
                   className="px-6 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition font-medium"
                   onClick={applyDiagnosisResult}
                 >
-                  提案を適用
+                  {t('aiAssist.modal.applyButton')}
                 </button>
                 <button
                   className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
                   onClick={() => setShowModal(false)}
                 >
-                  キャンセル
+                  {tCommon('cancel')}
                 </button>
               </div>
             </div>
@@ -573,10 +562,10 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <div className="flex items-center mb-4">
                 <span className="text-blue-600 text-xl mr-3">✨</span>
-                <h2 className="text-lg font-semibold">AIアシスト - 案件内容の入力サポート</h2>
+                <h2 className="text-lg font-semibold">{t('aiAssist.modal.loadingTitle')}</h2>
               </div>
               <p className="text-gray-700 text-sm mb-6">
-                AIが入力情報を深掘りし、充実した案件内容を提案します。
+                {t('aiAssist.modal.loadingDescription')}
               </p>
               <div className="flex flex-col items-center">
                 <svg
@@ -599,7 +588,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                   ></path>
                 </svg>
-                <p className="text-gray-600 text-center">AIが案件内容を分析中...</p>
+                <p className="text-gray-600 text-center">{t('aiAssist.modal.analyzing')}</p>
               </div>
             </div>
           </div>
@@ -613,7 +602,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                 className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
                 onClick={() => setValidationError(null)}
               >
-                OK
+                {tCommon('ok')}
               </button>
             </div>
           </div>
@@ -625,7 +614,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       {/* === 下段ブロック: 大学〜確認ボタン === */}
       {/* 大学 */}
       <div>
-        <label className="block text-sm font-medium mb-1">大学 <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium mb-1">{t('fields.university')} <span className="text-red-500">*</span></label>
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-300">
           <UniversitySelect
             value={formData.university || []}
@@ -645,7 +634,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       {/* 研究者階層 */}
       <div>
         <label className="block text-sm font-medium mb-1">
-          研究者階層 <span className="text-red-500">*</span>
+          {t('fields.researcherLevel')} <span className="text-red-500">*</span>
         </label>
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-300">
           {/* 上段：すべて選択 */}
@@ -661,7 +650,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                 }}
                 className="w-4 h-4 accent-blue-500"
               />
-              <span>すべて選択</span>
+              <span>{t('fields.selectAll')}</span>
             </label>
           </div>
 
@@ -685,7 +674,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
                   }}
                   className="w-4 h-4 accent-blue-500"
                 />
-                <span>{level}</span>
+                <span>{tLevels(level as any)}</span>
               </label>
             ))}
           </div>
@@ -695,7 +684,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
       {/* ボタン */}
       <div className="flex justify-center">
         <button type="submit" className="bg-gray-700 text-white font-semibold px-8 py-3 rounded-lg hover:bg-gray-800">
-          案件登録
+          {t('buttons.submitProject')}
         </button>
       </div>
 
@@ -704,23 +693,23 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
             <div className="flex items-center mb-4">
-              <h2 className="text-lg font-semibold">AIリサーチ実行確認</h2>
+              <h2 className="text-lg font-semibold">{t('aiResearch.modal.confirmTitle')}</h2>
             </div>
             <p className="text-gray-700 text-sm mb-6">
-              AIでのリサーチを実行しますか？登録された案件内容を基に、最適な研究者をAIが分析・レコメンドします。
+              {t('aiResearch.modal.confirmDescription')}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
                 onClick={executeAIResearch}
               >
-                はい
+                {tCommon('yes')}
               </button>
               <button
                 className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
                 onClick={() => setShowResearchConfirmModal(false)}
               >
-                いいえ
+                {tCommon('no')}
               </button>
             </div>
           </div>
