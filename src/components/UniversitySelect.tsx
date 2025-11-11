@@ -11,8 +11,22 @@ type UniversitySelectProps = {
 
 export default function UniversitySelect({ value, onChange }: UniversitySelectProps) {
     const t = useTranslations('register');
-    const tRegions = useTranslations('register.regions');
-    const tUniversities = useTranslations('register.universities');
+    const tRegions = (key: string) => {
+        try {
+            return t(`regions.${key}` as any);
+        } catch (e) {
+            console.error('Translation error for region:', key, e);
+            return key;
+        }
+    };
+    const tUniversities = (key: string) => {
+        try {
+            return t(`universities.${key}` as any);
+        } catch (e) {
+            console.error('Translation error for university:', key, e);
+            return key;
+        }
+    };
     const allUniversities = Object.values(universitiesBySubregion).flat();
     
     const [selectionMode, setSelectionMode] = useState<'none' | 'all' | 'regions'>('none');
@@ -119,7 +133,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                             onChange={() => handleToggleRegion(region, universities)}
                                             className="w-4 h-4 accent-blue-500"
                                         />
-                                        <span className="text-sm">{tRegions(region as any)}</span>
+                                        <span className="text-sm">{tRegions(region)}</span>
                                     </div>
                                     <div className="ml-6 grid grid-cols-3 gap-x-4 gap-y-1">
                                         {universities.map((univ) => {
@@ -132,7 +146,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                                         onChange={() => handleToggleUniversity(univ)}
                                                         className="w-3 h-3 accent-blue-500"
                                                     />
-                                                    <span>{tUniversities(univ as any)}</span>
+                                                    <span>{tUniversities(univ)}</span>
                                                 </label>
                                             );
                                         })}

@@ -119,30 +119,33 @@ export default function MatchedResearchers({
   const getResearcherInfo = (researcher: any, field: string) => {
     const researcherId = researcher.researcher_info?.researcher_id || researcher.matching_id;
 
-    if (locale === 'en' && researchersEn[researcherId]) {
+    // 英語ロケールの場合、まずresearchersEnを確認
+    if (locale === 'en') {
       const enInfo = researchersEn[researcherId];
-      console.log(`Getting ${field} for researcher ${researcherId} in English:`, enInfo);
-      switch (field) {
-        case 'name':
-          return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
-        case 'affiliation':
-          return enInfo.affiliation || researcher.researcher_info?.researcher_affiliation_current || "―";
-        case 'department':
-          return enInfo.department || researcher.researcher_info?.researcher_department_current || "―";
-        case 'position':
-          return enInfo.position || researcher.researcher_info?.researcher_position_current || "―";
-        case 'research_field':
-          return enInfo.research_field || researcher.researcher_info?.researcher_field || "―";
-        default:
-          return "―";
+
+      if (enInfo) {
+        console.log(`Found English data for researcher ${researcherId}, field ${field}:`, enInfo[field] || enInfo);
+        switch (field) {
+          case 'name':
+            return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
+          case 'affiliation':
+            return enInfo.affiliation || researcher.researcher_info?.researcher_affiliation_current || "―";
+          case 'department':
+            return enInfo.department || researcher.researcher_info?.researcher_department_current || "―";
+          case 'position':
+            return enInfo.position || researcher.researcher_info?.researcher_position_current || "―";
+          case 'research_field':
+            return enInfo.research_field || researcher.researcher_info?.researcher_field || "―";
+          default:
+            return "―";
+        }
+      } else {
+        console.warn(`No English data for researcher ${researcherId}. Available IDs:`, Object.keys(researchersEn));
+        console.warn(`Researcher object:`, researcher);
       }
     }
 
     // 日本語または英語データがない場合は日本語版を使用
-    if (locale === 'en') {
-      console.log(`No English data for researcher ${researcherId}, using Japanese data. researchersEn:`, Object.keys(researchersEn));
-    }
-
     switch (field) {
       case 'name':
         return researcher.researcher_info?.researcher_name || "―";
