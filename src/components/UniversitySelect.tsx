@@ -12,20 +12,16 @@ type UniversitySelectProps = {
 export default function UniversitySelect({ value, onChange }: UniversitySelectProps) {
     const t = useTranslations('register');
     const tRegions = (key: string) => {
-        try {
-            return t(`regions.${key}` as any);
-        } catch (e) {
-            console.error('Translation error for region:', key, e);
-            return key;
-        }
+        const translationKey = `regions.${key}`;
+        const result = t(translationKey as any);
+        console.log(`Region translation: ${key} -> ${result}`);
+        return result;
     };
     const tUniversities = (key: string) => {
-        try {
-            return t(`universities.${key}` as any);
-        } catch (e) {
-            console.error('Translation error for university:', key, e);
-            return key;
-        }
+        const translationKey = `universities.${key}`;
+        const result = t(translationKey as any);
+        console.log(`University translation: ${key} -> ${result}`);
+        return result;
     };
     const allUniversities = Object.values(universitiesBySubregion).flat();
     
