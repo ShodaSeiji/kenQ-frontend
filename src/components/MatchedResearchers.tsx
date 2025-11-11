@@ -85,6 +85,8 @@ export default function MatchedResearchers({
             r.researcher_info?.researcher_id || r.matching_id
           ).filter(Boolean);
 
+          console.log('Fetching English data for researcher IDs:', researcherIds);
+
           if (researcherIds.length > 0) {
             const enResponse = await fetch('/api/researchers-en', {
               method: 'POST',
@@ -96,9 +98,11 @@ export default function MatchedResearchers({
 
             if (enResponse.ok) {
               const enData = await enResponse.json();
+              console.log('Received English researcher data:', enData);
               setResearchersEn(enData.researchers || {});
             } else {
-              console.error('Failed to fetch English researcher data');
+              const errorText = await enResponse.text();
+              console.error('Failed to fetch English researcher data:', enResponse.status, errorText);
             }
           }
         }
@@ -117,6 +121,7 @@ export default function MatchedResearchers({
 
     if (locale === 'en' && researchersEn[researcherId]) {
       const enInfo = researchersEn[researcherId];
+      console.log(`Getting ${field} for researcher ${researcherId} in English:`, enInfo);
       switch (field) {
         case 'name':
           return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
@@ -134,6 +139,10 @@ export default function MatchedResearchers({
     }
 
     // 日本語または英語データがない場合は日本語版を使用
+    if (locale === 'en') {
+      console.log(`No English data for researcher ${researcherId}, using Japanese data. researchersEn:`, Object.keys(researchersEn));
+    }
+
     switch (field) {
       case 'name':
         return researcher.researcher_info?.researcher_name || "―";
