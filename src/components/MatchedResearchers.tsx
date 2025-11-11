@@ -337,14 +337,14 @@ export default function MatchedResearchers({
     const researcherRows = researchers.map((r) => {
       const researcherId = r.researcher_info?.researcher_id || r.matching_id;
       const kakenNumber = researcherId.toString().padStart(12, '0');
-      const kakenUrl = `https://nrid.nii.ac.jp/ja/nrid/1${kakenNumber}`;
+      const kakenUrl = `https://nrid.nii.ac.jp/${locale}/nrid/1${kakenNumber}`;
       const isFavorite = favorites.includes(researcherId.toString()) ? tProject('registered') : tProject('notRegistered');
 
       return [
-        r.researcher_info?.researcher_name || "―",
-        r.researcher_info?.researcher_affiliation_current || "―",
-        r.researcher_info?.researcher_department_current || "―",
-        r.researcher_info?.researcher_position_current || "―",
+        getResearcherInfo(r, 'name'),
+        getResearcherInfo(r, 'affiliation'),
+        getResearcherInfo(r, 'department'),
+        getResearcherInfo(r, 'position'),
         kakenUrl,
         r.matching_reason || r.researcher_info?.explanation || r.explanation || "―",
         isFavorite
