@@ -10,9 +10,19 @@ type UniversitySelectProps = {
 
 
 export default function UniversitySelect({ value, onChange }: UniversitySelectProps) {
-    const t = useTranslations('register.fields');
-    const tRegions = useTranslations('register.regions');
-    const tUniversities = useTranslations('register.universities');
+    const t = useTranslations('register');
+    const tRegions = (key: string) => {
+        const translationKey = `regions.${key}`;
+        const result = t(translationKey as any);
+        console.log(`Region translation: ${key} -> ${result}`);
+        return result;
+    };
+    const tUniversities = (key: string) => {
+        const translationKey = `universities.${key}`;
+        const result = t(translationKey as any);
+        console.log(`University translation: ${key} -> ${result}`);
+        return result;
+    };
     const allUniversities = Object.values(universitiesBySubregion).flat();
     
     const [selectionMode, setSelectionMode] = useState<'none' | 'all' | 'regions'>('none');
@@ -84,7 +94,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectAll}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>{t('selectAllUniversities', { count: allUniversities.length })}</span>
+                        <span>{t('universitySelect.selectAll', { count: allUniversities.length })}</span>
                     </label>
                 </div>
 
@@ -98,7 +108,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                             onChange={handleSelectRegions}
                             className="w-4 h-4 accent-blue-500"
                         />
-                        <span>{t('selectByArea')}</span>
+                        <span>{t('universitySelect.selectByRegion')}</span>
                     </label>
                 </div>
 
@@ -119,7 +129,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                             onChange={() => handleToggleRegion(region, universities)}
                                             className="w-4 h-4 accent-blue-500"
                                         />
-                                        <span className="text-sm">{tRegions(region as any)}</span>
+                                        <span className="text-sm">{tRegions(region)}</span>
                                     </div>
                                     <div className="ml-6 grid grid-cols-3 gap-x-4 gap-y-1">
                                         {universities.map((univ) => {
@@ -132,7 +142,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
                                                         onChange={() => handleToggleUniversity(univ)}
                                                         className="w-3 h-3 accent-blue-500"
                                                     />
-                                                    <span>{tUniversities(univ as any)}</span>
+                                                    <span>{tUniversities(univ)}</span>
                                                 </label>
                                             );
                                         })}
@@ -147,7 +157,7 @@ export default function UniversitySelect({ value, onChange }: UniversitySelectPr
             {/* 選択された大学数 */}
             <div className="mt-6 pt-4 border-t border-gray-300">
                 <p className="text-sm font-medium">
-                    {t('selectedUniversities', { count: selectedUniversities.length })}
+                    {t('universitySelect.selectedCount', { count: selectedUniversities.length })}
                 </p>
             </div>
         </div>
