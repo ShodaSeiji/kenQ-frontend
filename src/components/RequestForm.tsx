@@ -284,7 +284,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             <div className="space-y-2 text-sm text-gray-600">
               <div>
                 <p><span className="font-medium">{t('fields.industry')}:</span> {
-                  formData.industry || t('common.unspecified')
+                  formData.industry ? tIndustries(formData.industry as any) : t('common.unspecified')
                 }</p>
               </div>
               <div>
@@ -370,7 +370,7 @@ export default function RequestForm({ onSubmit, onStatusChange }: RequestFormPro
             <h3 className="text-blue-600 font-medium mb-3">{formData.title}</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <p><span className="font-medium">{t('fields.industry')}:</span> {
-                formData.industry || t('common.unspecified')
+                formData.industry ? tIndustries(formData.industry as any) : t('common.unspecified')
               }</p>
               <p><span className="font-medium">{t('fields.businessDescription')}:</span> {
                 formData.businessDescription || t('common.unspecified')

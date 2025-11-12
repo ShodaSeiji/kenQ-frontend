@@ -55,6 +55,7 @@
     "researcherLevel": "Researcher Level",
     "allUniversities": "All Universities ({count} schools)",
     "universityCount": "{name} ({count} schools)",
+    "selectedUniversitiesDisplay": "{names} ({count} schools)",
     "unspecified": "Not specified",
     "allLevels": "All Levels: Professor / Associate Professor / Assistant Professor / Lecturer / Associate Professor / Research Assistant / Researcher / Project Assistant Professor / Senior Researcher / Project Professor",
     "pleaseWait": "Please wait...",
@@ -136,6 +137,11 @@
       "selectAllUniversities": "Select All Universities ({count} schools)",
       "selectByArea": "Select by Area",
       "selectedUniversities": "Selected Universities: {count} schools"
+    },
+    "universitySelect": {
+      "selectAll": "Select All Universities ({count} schools)",
+      "selectByRegion": "Select by Region",
+      "selectedCount": "Selected Universities: {count} schools"
     },
     "placeholders": {
       "projectTitle": "Enter title",

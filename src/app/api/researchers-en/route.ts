@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || process.env.API_URL || "http://localhost:8000";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { researcher_ids } = body;
+
+    console.log('Received researcher_ids:', researcher_ids);
+    console.log('BACKEND_URL:', BACKEND_URL);
 
     if (!researcher_ids || !Array.isArray(researcher_ids)) {
       return NextResponse.json(
@@ -14,8 +17,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const backendUrl = `${BACKEND_URL}/researchers-en`;
+    console.log('Fetching from backend:', backendUrl);
+
     // バックエンドのエンドポイントにリクエスト
-    const response = await fetch(`${BACKEND_URL}/researchers-en`, {
+    const response = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

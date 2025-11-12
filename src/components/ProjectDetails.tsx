@@ -114,7 +114,10 @@ export default function ProjectDetails({
                 Array.isArray(project.university) && project.university.includes("全大学")
                   ? t('allUniversities', { count: Object.values(universitiesBySubregion).flat().length })
                   : Array.isArray(project.university) && project.university.length > 0
-                  ? `${project.university.map((u: string) => tUniversities(u as any)).join("/")}（${project.university.length}校）`
+                  ? t('selectedUniversitiesDisplay', {
+                      names: project.university.map((u: string) => tUniversities(u as any)).join("/"),
+                      count: project.university.length
+                    })
                   : t('unspecified')
               }</p>
             </div>

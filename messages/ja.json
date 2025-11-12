@@ -55,6 +55,7 @@
     "researcherLevel": "研究者階層",
     "allUniversities": "全大学（{count}校）",
     "universityCount": "{name}（{count}校）",
+    "selectedUniversitiesDisplay": "{names}（{count}校）",
     "unspecified": "未指定",
     "allLevels": "全階層_教授／准教授／助教／講師／助教授／助手／研究員／特任助教／主任研究員／特任教授",
     "pleaseWait": "しばらくお待ちください",
@@ -136,6 +137,11 @@
       "selectAllUniversities": "全大学を選択（{count}校）",
       "selectByArea": "エリアから選択",
       "selectedUniversities": "選択された大学: {count}校"
+    },
+    "universitySelect": {
+      "selectAll": "全大学を選択（{count}校）",
+      "selectByRegion": "エリアから選択",
+      "selectedCount": "選択された大学: {count}校"
     },
     "placeholders": {
       "projectTitle": "タイトルを入力してください",

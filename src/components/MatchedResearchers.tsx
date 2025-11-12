@@ -85,6 +85,8 @@ export default function MatchedResearchers({
             r.researcher_info?.researcher_id || r.matching_id
           ).filter(Boolean);
 
+          console.log('Fetching English data for researcher IDs:', researcherIds);
+
           if (researcherIds.length > 0) {
             const enResponse = await fetch('/api/researchers-en', {
               method: 'POST',
@@ -96,9 +98,11 @@ export default function MatchedResearchers({
 
             if (enResponse.ok) {
               const enData = await enResponse.json();
+              console.log('Received English researcher data:', enData);
               setResearchersEn(enData.researchers || {});
             } else {
-              console.error('Failed to fetch English researcher data');
+              const errorText = await enResponse.text();
+              console.error('Failed to fetch English researcher data:', enResponse.status, errorText);
             }
           }
         }
@@ -115,21 +119,29 @@ export default function MatchedResearchers({
   const getResearcherInfo = (researcher: any, field: string) => {
     const researcherId = researcher.researcher_info?.researcher_id || researcher.matching_id;
 
-    if (locale === 'en' && researchersEn[researcherId]) {
+    // 英語ロケールの場合、まずresearchersEnを確認
+    if (locale === 'en') {
       const enInfo = researchersEn[researcherId];
-      switch (field) {
-        case 'name':
-          return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
-        case 'affiliation':
-          return enInfo.affiliation || researcher.researcher_info?.researcher_affiliation_current || "―";
-        case 'department':
-          return enInfo.department || researcher.researcher_info?.researcher_department_current || "―";
-        case 'position':
-          return enInfo.position || researcher.researcher_info?.researcher_position_current || "―";
-        case 'research_field':
-          return enInfo.research_field || researcher.researcher_info?.researcher_field || "―";
-        default:
-          return "―";
+
+      if (enInfo) {
+        console.log(`Found English data for researcher ${researcherId}, field ${field}:`, enInfo[field] || enInfo);
+        switch (field) {
+          case 'name':
+            return enInfo.researcher_name || researcher.researcher_info?.researcher_name || "―";
+          case 'affiliation':
+            return enInfo.affiliation || researcher.researcher_info?.researcher_affiliation_current || "―";
+          case 'department':
+            return enInfo.department || researcher.researcher_info?.researcher_department_current || "―";
+          case 'position':
+            return enInfo.position || researcher.researcher_info?.researcher_position_current || "―";
+          case 'research_field':
+            return enInfo.research_field || researcher.researcher_info?.researcher_field || "―";
+          default:
+            return "―";
+        }
+      } else {
+        console.warn(`No English data for researcher ${researcherId}. Available IDs:`, Object.keys(researchersEn));
+        console.warn(`Researcher object:`, researcher);
       }
     }
 
@@ -337,14 +349,14 @@ export default function MatchedResearchers({
     const researcherRows = researchers.map((r) => {
       const researcherId = r.researcher_info?.researcher_id || r.matching_id;
       const kakenNumber = researcherId.toString().padStart(12, '0');
-      const kakenUrl = `https://nrid.nii.ac.jp/ja/nrid/1${kakenNumber}`;
+      const kakenUrl = `https://nrid.nii.ac.jp/${locale}/nrid/1${kakenNumber}`;
       const isFavorite = favorites.includes(researcherId.toString()) ? tProject('registered') : tProject('notRegistered');
 
       return [
-        r.researcher_info?.researcher_name || "―",
-        r.researcher_info?.researcher_affiliation_current || "―",
-        r.researcher_info?.researcher_department_current || "―",
-        r.researcher_info?.researcher_position_current || "―",
+        getResearcherInfo(r, 'name'),
+        getResearcherInfo(r, 'affiliation'),
+        getResearcherInfo(r, 'department'),
+        getResearcherInfo(r, 'position'),
         kakenUrl,
         r.matching_reason || r.researcher_info?.explanation || r.explanation || "―",
         isFavorite
